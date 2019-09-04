@@ -10,14 +10,14 @@ import matplotlib.cm as cmap
 import time
 import os.path
 import scipy
-import cPickle as pickle
+import _pickle as pickle
 from struct import unpack
 from brian2 import *
 import brian2 as b2
-from brian2tools import *
+# from brian2tools import *
 
 # specify the location of the MNIST data
-MNIST_data_path = ''
+MNIST_data_path = './mnist/'
 
 #------------------------------------------------------------------------------
 # functions
@@ -50,10 +50,10 @@ def get_labeled_data(picklename, bTrain = True):
         # Get the data
         x = np.zeros((N, rows, cols), dtype=np.uint8)  # Initialize numpy array
         y = np.zeros((N, 1), dtype=np.uint8)  # Initialize numpy array
-        for i in xrange(N):
+        for i in range(N):
             if i % 1000 == 0:
                 print("i: %i" % i)
-            x[i] = [[unpack('>B', images.read(1))[0] for unused_col in xrange(cols)]  for unused_row in xrange(rows) ]
+            x[i] = [[unpack('>B', images.read(1))[0] for unused_col in range(cols)]  for unused_row in range(rows) ]
             y[i] = unpack('>B', labels.read(1))[0]
 
         data = {'x': x, 'y': y, 'rows': rows, 'cols': cols}
@@ -103,7 +103,7 @@ def normalize_weights():
             temp_conn = np.copy(connection)
             colSums = np.sum(temp_conn, axis = 0)
             colFactors = weight['ee_input']/colSums
-            for j in xrange(n_e):#
+            for j in range(n_e):#
                 temp_conn[:,j] *= colFactors[j]
             connections[connName].w = temp_conn[connections[connName].i, connections[connName].j]
 
@@ -119,8 +119,8 @@ def get_2d_input_weights():
     connMatrix[connections[name].i, connections[name].j] = connections[name].w
     weight_matrix = np.copy(connMatrix)
 
-    for i in xrange(n_e_sqrt):
-        for j in xrange(n_e_sqrt):
+    for i in range(n_e_sqrt):
+        for j in range(n_e_sqrt):
                 rearranged_weights[i*n_in_sqrt : (i+1)*n_in_sqrt, j*n_in_sqrt : (j+1)*n_in_sqrt] = \
                     weight_matrix[:, i + j*n_e_sqrt].reshape((n_in_sqrt, n_in_sqrt))
     return rearranged_weights
@@ -173,7 +173,7 @@ def update_performance_plot(im, performance, current_example_num, fig):
 def get_recognized_number_ranking(assignments, spike_rates):
     summed_rates = [0] * 10
     num_assignments = [0] * 10
-    for i in xrange(10):
+    for i in range(10):
         num_assignments[i] = len(np.where(assignments == i)[0])
         if num_assignments[i] > 0:
             summed_rates[i] = np.sum(spike_rates[assignments == i]) / num_assignments[i]
@@ -183,11 +183,11 @@ def get_new_assignments(result_monitor, input_numbers):
     assignments = np.zeros(n_e)
     input_nums = np.asarray(input_numbers)
     maximum_rate = [0] * n_e
-    for j in xrange(10):
+    for j in range(10):
         num_assignments = len(np.where(input_nums == j)[0])
         if num_assignments > 0:
             rate = np.sum(result_monitor[input_nums == j], axis = 0) / num_assignments
-        for i in xrange(n_e):
+        for i in range(n_e):
             if rate[i] > maximum_rate[i]:
                 maximum_rate[i] = rate[i]
                 assignments[i] = j
