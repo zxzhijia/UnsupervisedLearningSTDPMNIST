@@ -10,14 +10,14 @@ import matplotlib.cm as cmap
 import time
 import os.path
 import scipy
-import cPickle as pickle
+import _pickle as pickle
 from struct import unpack
 from brian2 import *
 import brian2 as b2
-from brian2tools import *
+# from brian2tools import *
 
 # specify the location of the MNIST data
-MNIST_data_path = ''
+MNIST_data_path = './mnist/'
 
 #------------------------------------------------------------------------------
 # functions
@@ -50,10 +50,10 @@ def get_labeled_data(picklename, bTrain = True):
         # Get the data
         x = np.zeros((N, rows, cols), dtype=np.uint8)  # Initialize numpy array
         y = np.zeros((N, 1), dtype=np.uint8)  # Initialize numpy array
-        for i in xrange(N):
+        for i in range(N):
             if i % 1000 == 0:
                 print("i: %i" % i)
-            x[i] = [[unpack('>B', images.read(1))[0] for unused_col in xrange(cols)]  for unused_row in xrange(rows) ]
+            x[i] = [[unpack('>B', images.read(1))[0] for unused_col in range(cols)]  for unused_row in range(rows) ]
             y[i] = unpack('>B', labels.read(1))[0]
 
         data = {'x': x, 'y': y, 'rows': rows, 'cols': cols}
@@ -74,7 +74,7 @@ def get_matrix_from_file(fileName):
     else:
         n_tgt = n_i
     readout = np.load(fileName)
-    print readout.shape, fileName
+    print(readout.shape, fileName)
     value_arr = np.zeros((n_src, n_tgt))
     if not readout.shape == (0,):
         value_arr[np.int32(readout[:,0]), np.int32(readout[:,1])] = readout[:,2]
@@ -82,14 +82,14 @@ def get_matrix_from_file(fileName):
 
 
 def save_connections(ending = ''):
-    print 'save connections'
+    print('save connections')
     for connName in save_conns:
         conn = connections[connName]
         connListSparse = zip(conn.i, conn.j, conn.w)
         np.save(data_path + 'weights/' + connName + ending, connListSparse)
 
 def save_theta(ending = ''):
-    print 'save theta'
+    print('save theta')
     for pop_name in population_names:
         np.save(data_path + 'weights/theta_' + pop_name + ending, neuron_groups[pop_name + 'e'].theta)
 
@@ -103,7 +103,7 @@ def normalize_weights():
             temp_conn = np.copy(connection)
             colSums = np.sum(temp_conn, axis = 0)
             colFactors = weight['ee_input']/colSums
-            for j in xrange(n_e):#
+            for j in range(n_e):#
                 temp_conn[:,j] *= colFactors[j]
             connections[connName].w = temp_conn[connections[connName].i, connections[connName].j]
 
@@ -119,8 +119,8 @@ def get_2d_input_weights():
     connMatrix[connections[name].i, connections[name].j] = connections[name].w
     weight_matrix = np.copy(connMatrix)
 
-    for i in xrange(n_e_sqrt):
-        for j in xrange(n_e_sqrt):
+    for i in range(n_e_sqrt):
+        for j in range(n_e_sqrt):
                 rearranged_weights[i*n_in_sqrt : (i+1)*n_in_sqrt, j*n_in_sqrt : (j+1)*n_in_sqrt] = \
                     weight_matrix[:, i + j*n_e_sqrt].reshape((n_in_sqrt, n_in_sqrt))
     return rearranged_weights
@@ -173,7 +173,7 @@ def update_performance_plot(im, performance, current_example_num, fig):
 def get_recognized_number_ranking(assignments, spike_rates):
     summed_rates = [0] * 10
     num_assignments = [0] * 10
-    for i in xrange(10):
+    for i in range(10):
         num_assignments[i] = len(np.where(assignments == i)[0])
         if num_assignments[i] > 0:
             summed_rates[i] = np.sum(spike_rates[assignments == i]) / num_assignments[i]
@@ -183,11 +183,11 @@ def get_new_assignments(result_monitor, input_numbers):
     assignments = np.zeros(n_e)
     input_nums = np.asarray(input_numbers)
     maximum_rate = [0] * n_e
-    for j in xrange(10):
+    for j in range(10):
         num_assignments = len(np.where(input_nums == j)[0])
         if num_assignments > 0:
             rate = np.sum(result_monitor[input_nums == j], axis = 0) / num_assignments
-        for i in xrange(n_e):
+        for i in range(n_e):
             if rate[i] > maximum_rate[i]:
                 maximum_rate[i] = rate[i]
                 assignments[i] = j
@@ -200,12 +200,12 @@ def get_new_assignments(result_monitor, input_numbers):
 start = time.time()
 training = get_labeled_data(MNIST_data_path + 'training')
 end = time.time()
-print 'time needed to load training set:', end - start
+print('time needed to load training set:', end - start)
 
 start = time.time()
 testing = get_labeled_data(MNIST_data_path + 'testing', bTrain = False)
 end = time.time()
-print 'time needed to load test set:', end - start
+print('time needed to load test set:', end - start)
 
 
 #------------------------------------------------------------------------------
@@ -346,7 +346,7 @@ neuron_groups['i'] = b2.NeuronGroup(n_i*len(population_names), neuron_eqs_i, thr
 # create network population and recurrent connections
 #------------------------------------------------------------------------------
 for subgroup_n, name in enumerate(population_names):
-    print 'create neuron group', name
+    print('create neuron group', name)
 
     neuron_groups[name+'e'] = neuron_groups['e'][subgroup_n*n_e:(subgroup_n+1)*n_e]
     neuron_groups[name+'i'] = neuron_groups['i'][subgroup_n*n_i:(subgroup_n+1)*n_e]
@@ -358,7 +358,7 @@ for subgroup_n, name in enumerate(population_names):
     else:
         neuron_groups['e'].theta = np.ones((n_e)) * 20.0*b2.mV
 
-    print 'create recurrent connections'
+    print('create recurrent connections')
     for conn_type in recurrent_conn_names:
         connName = name+conn_type[0]+name+conn_type[1]
         weightMatrix = get_matrix_from_file(weight_path + '../random/' + connName + ending + '.npy')
@@ -375,7 +375,7 @@ for subgroup_n, name in enumerate(population_names):
         connections[connName].connect(True) # all-to-all connection
         connections[connName].w = weightMatrix[connections[connName].i, connections[connName].j]
 
-    print 'create monitors for', name
+    print('create monitors for', name)
     rate_monitors[name+'e'] = b2.PopulationRateMonitor(neuron_groups[name+'e'])
     rate_monitors[name+'i'] = b2.PopulationRateMonitor(neuron_groups[name+'i'])
     spike_counters[name+'e'] = b2.SpikeMonitor(neuron_groups[name+'e'])
@@ -394,7 +394,7 @@ for i,name in enumerate(input_population_names):
     rate_monitors[name+'e'] = b2.PopulationRateMonitor(input_groups[name+'e'])
 
 for name in input_connection_names:
-    print 'create connections between', name[0], 'and', name[1]
+    print('create connections between', name[0], 'and', name[1])
     for connType in input_conn_names:
         connName = name[0] + connType[0] + name[1] + connType[1]
         weightMatrix = get_matrix_from_file(weight_path + connName + ending + '.npy')
@@ -402,7 +402,7 @@ for name in input_connection_names:
         pre = 'g%s_post += w' % connType[0]
         post = ''
         if ee_STDP_on:
-            print 'create STDP for connection', name[0]+'e'+name[1]+'e'
+            print('create STDP for connection', name[0]+'e'+name[1]+'e')
             model += eqs_stdp_ee
             pre += '; ' + eqs_stdp_pre_ee
             post = eqs_stdp_post_ee
@@ -477,11 +477,11 @@ while j < (int(num_examples)):
             input_numbers[j] = training['y'][j%60000][0]
         outputNumbers[j,:] = get_recognized_number_ranking(assignments, result_monitor[j%update_interval,:])
         if j % 100 == 0 and j > 0:
-            print 'runs done:', j, 'of', int(num_examples)
+            print('runs done:', j, 'of', int(num_examples))
         if j % update_interval == 0 and j > 0:
             if do_plot_performance:
                 unused, performance = update_performance_plot(performance_monitor, performance, j, fig_performance)
-                print 'Classification performance', performance[:(j/float(update_interval))+1]
+                print('Classification performance', performance[:(j/float(update_interval))+1])
         for i,name in enumerate(input_population_names):
             input_groups[name+'e'].rates = 0 * Hz
         net.run(resting_time)
@@ -492,7 +492,7 @@ while j < (int(num_examples)):
 #------------------------------------------------------------------------------
 # save results
 #------------------------------------------------------------------------------
-print 'save results'
+print('save results')
 if not test_mode:
     save_theta()
 if not test_mode:
