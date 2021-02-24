@@ -17,7 +17,7 @@ import brian2 as b2
 from brian2tools import *
 
 # specify the location of the MNIST data
-MNIST_data_path = ""
+MNIST_data_path = "MNIST\\"
 
 #------------------------------------------------------------------------------
 # functions
@@ -546,19 +546,19 @@ subplot(3,1,3)
 
 brian_plot(connections['AiAe'].w)
 
-
-plt.figure(6)
-
-subplot(3,1,1)
-
-brian_plot(connections['XeAe'].delay)
-subplot(3,1,2)
-
-brian_plot(connections['AeAi'].delay)
-
-subplot(3,1,3)
-
-brian_plot(connections['AiAe'].delay)
+#
+# plt.figure(6)
+#
+# subplot(3,1,1)
+#
+# brian_plot(connections['XeAe'].delay)
+# subplot(3,1,2)
+#
+# brian_plot(connections['AeAi'].delay)
+#
+# subplot(3,1,3)
+#
+# brian_plot(connections['AiAe'].delay)
 
 
 b2.ioff()
